@@ -130,11 +130,11 @@ Legal Text:
 
 Processing 450,000 characters took about 15 minutes on an A100. However, ~80% of that time was saving and loading the KVCache (Which can be done instantly if written in C++, rather than Python). So, we can expect that it would take 3 minutes per 450,000 characters if done optimally. Or, 7 MTokens per hour.
 
-Or quality benchmarks against a LegalBenchConsumerContractsQA are as follows:
+Our quality benchmarks against a LegalBenchConsumerContractsQA are as follows:
 
 ![](https://i.imgur.com/g9RJIz0.png)
 
-As you can see, Llama 4 has a higher retrieval ratio score, _and_ a higher signal ratio score, than the naïve method and the SoTA method of semantic chunking (Which uses embeddings to detect sentence split boundaries, and still requires a good regex-based sentence splitter).
+As you can see, LlamaChunk has a higher retrieval ratio score, _and_ a higher signal ratio score, than the naïve method and the SoTA method of semantic chunking (Which uses embeddings to detect sentence split boundaries, and still requires a good regex-based sentence splitter).
 
 ## Details
 
