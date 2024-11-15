@@ -22,7 +22,7 @@ Here are our main contributions:
 
 Here we present a novel method of processing files for use in RAG applications.
 
-In order to implement a RAG pipeline, the first step is always to split the document into small chunks, and embed each chunk into a vector database for retrieval. However, the issue is that splitting a document into chunks is difficult. If you simply split every 100 characters, you break up the meaning. For example, when chunking this section of the U.S. Constitution,
+In order to implement a RAG pipeline, the first step is always to split the document into small chunks, and embed each chunk into a vector database for retrieval. However, the issue is that splitting a document into chunks is difficult. If you simply split every 100 characters, you break up the meaning. For example, when chunking this snippet of the U.S. Constitution,
 
 ```
 Section. 1.
