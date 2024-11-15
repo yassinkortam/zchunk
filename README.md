@@ -115,13 +115,13 @@ But, we can simply normalize by this decaying curve in order to to fix this:
 And now, we're ready to split any type of document, without having to resort to regex or manually created rules:
 
 ### Python
-![](https://i.imgur.com/QI1ZHLh.png)
+<img src="https://i.imgur.com/QI1ZHLh.png" alt="Example Image" width="70%">
 
 ### Markdown
 ![](https://i.imgur.com/VWd6mb9.png)
 
 ### HTML
-![](https://i.imgur.com/201qkLp.png)
+<img src="https://i.imgur.com/201qkLp.png" alt="Example Image" width="70%">
 
 ### Legal Text
 ![](https://i.imgur.com/6h5Oy1x.png)
