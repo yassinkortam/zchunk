@@ -80,14 +80,21 @@ You should insert the "段" throughout the input.
 Your goal is to separate the content into semantically relevant groupings.
 ```
 
-```python
+Output:
+
+```
 Section. 1.
-All legislative Powers herein granted shall be vested in a Congress of the United States, which shall consist of a Senate and House of Representatives."段
+All legislative Powers herein granted shall be vested in a Congress of the United States,
+which shall consist of a Senate and House of Representatives.段
 
 Section. 2.
-The House of Representatives shall be composed of Members chosen every second Year by the People of the several States, and the Electors in each State shall have the Qualifications requisite for Electors of the most numerous Branch of the State Legislature."段
+The House of Representatives shall be composed of Members chosen every second Year by the People of the several States,
+and the Electors in each State shall have the Qualifications requisite for
+Electors of the most numerous Branch of the State Legislature.段
 
-No Person shall be a Representative who shall not have attained to the Age of twenty five Years, and been seven Years a Citizen of the United States, and who shall not, when elected, be an Inhabitant of that State in which he shall be chosen."段
+No Person shall be a Representative who shall not have attained to the Age of twenty five Years,
+and been seven Years a Citizen of the United States, and who shall not, when elected,
+be an Inhabitant of that State in which he shall be chosen.段
 ```
 
 And just like that, it's perfect out of the box! It correctly used the "段" character to mark the end of every section. We just need to do `chunks = ai_response.split("段")` to get our chunks. Each section is now RAG-ready.
