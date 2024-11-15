@@ -22,54 +22,52 @@ Here are our main contributions:
 
 Here we present a novel method of processing files for use in RAG applications.
 
-In order to implement a RAG pipeline, the first step is always to split the document into small chunks, and embed each chunk into a vector database for retrieval. However, the issue is that splitting a document into chunks is difficult. If you simply split every 100 characters, you break up the meaning,
+In order to implement a RAG pipeline, the first step is always to split the document into small chunks, and embed each chunk into a vector database for retrieval. However, the issue is that splitting a document into chunks is difficult. If you simply split every 100 characters, you break up the meaning. For example, when chunking this section of the U.S. Constitution,
 
 ```python
-from heatmap_tokens import get_heatmap_tokens
-import json
-heatmap_tokens = get_heatmap_tokens(None)
+Section. 1.
+All legislative Powers herein granted shall be vested in a Congress of the United States, which shall consist of a Senate and House of Representatives.
 
-def save_threshold(threshold: int) -> list[str]:
-    chunks  = []
-    last_index  =  0
-    for i, heatmap_token in enumerate(heatmap_tokens  + [None]):
-        if heatmap_token is None or  heatmap_token.heat > threshold:
-        chunks.append("".join([heatmap_token.token  for  heatmap_token  in  heatmap_tokens[last_index:i]]))
+Section. 2.
+The House of Representatives shall be composed of Members chosen every second Year by the People of the several States, and the Electors in each State shall have the Qualifications requisite for Electors of the most numerous Branch of the State Legislature.
+
+No Person shall be a Representative who shall not have attained to the Age of twenty five Years, and been seven Years a Citizen of the United States, and who shall not, when elected, be an Inhabitant of that State in which he shall be chosen.
 ```
 
 =>
 
-```python
-from heatmap_tokens import get_heatmap_tokens
-import json
-heatmap_tokens = get_heatmap_tokens(None)
+### Chunk 1
 
-def save_thres
+```
+Section. 1.
+All legislative Powers herein granted shall be vested in a Congress of the United States, which shall consist of a Senate and House of Representatives.
+
+Section. 2.
+The House of Representa
 ```
 
-```python
-hold(threshold: int) -> list[str]:
-    chunks  = []
-    last_index  =  0
-    for i, he
+### Chunk 2
+
+```
+tives shall be composed of Members chosen every second Year by the People of the several States, and the Electors in each State shall have the Qualifications requisite for Electors of the most numerou
 ```
 
-```python
-atmap_token in enumerate(heatmap_tokens  + [None]):
-        if heatmap_token is None or  heatmap_token.heat > threshold:
-        chunks.append("".join([heatmap_tok
+### Chunk 3
+
+```
+s Branch of the State Legislature.
+
+No Person shall be a Representative who shall not have attained to the Age of twenty five Years, and been seven Years a Citizen of the United States, and who shall
 ```
 
-None of these chunks can be interpreted, because they're broken along random boundaries. Of course, for python, you can write an abstract syntax tree (AST) parser and collect chunks of size 100 from that AST. However, this is time-consuming, and brittle.
-
-The current SoTA is to write a regex to split by line or sentence, and then group sentences using embedding similarity. This is called "semantic" chunking.
+These chunks completely destroy the ability to understand the content of the document. The current SoTA is to write a regex to split by line or sentence, and then group sentences using embedding similarity. This is called "semantic" chunking. However, regex involves need to do custom additional work for every new document type you want to support, and when it breaks the results are poor.
 
 Here, we present LlamaChunk:
 
 ## LlamaChunk algorithm
 
 The LlamaChunk algorithm is simple: We pick a special token that we know is not in the corpus, e.g. "段".
-- "段" always encodes to exactly one token, is not in the corpus, and means "section" in Chinese.
+- We pick the character "段" because 1. tiktoken always encodes it to exactly one token, 2. it is not in the corpus, and 3. it means "section" in Chinese.
 
 Then, we ask Llama to repeat the User's message with the "段" token sprinkled throughout.
 
@@ -83,18 +81,16 @@ Your goal is to separate the content into semantically relevant groupings.
 ```
 
 ```python
-from heatmap_tokens import get_heatmap_tokens
-import json
-heatmap_tokens = get_heatmap_tokens(None)段
+Section. 1.
+All legislative Powers herein granted shall be vested in a Congress of the United States, which shall consist of a Senate and House of Representatives."段
 
-def save_threshold(threshold: int) -> list[str]:段
-    chunks  = []段
-    last_index  =  0
-    for i, heatmap_token  in  enumerate(heatmap_tokens  + [None]):
-        if  heatmap_token  is  None  or  heatmap_token.heat > threshold:段
+Section. 2.
+The House of Representatives shall be composed of Members chosen every second Year by the People of the several States, and the Electors in each State shall have the Qualifications requisite for Electors of the most numerous Branch of the State Legislature."段
+
+No Person shall be a Representative who shall not have attained to the Age of twenty five Years, and been seven Years a Citizen of the United States, and who shall not, when elected, be an Inhabitant of that State in which he shall be chosen."段
 ```
 
-Perfect! It split the imports, the function header, the variables, and the for-loop. Each section is now RAG-ready.
+And just like that, it's perfect out of the box! It correctly used the "段" character to mark the end of every section. We just need to do `chunks = ai_response.split("段")` to get our chunks. Each section is now RAG-ready.
 
 ### LlamaChunk optimization
 
@@ -102,9 +98,11 @@ If you've ever worked with LLM's, you know that input tokens are processed almos
 
 However, by inferencing llama locally, we have a vastly more efficient way of doing this! We can simply pass in the entire paragraph, and check the logprobs to see the probability that Llama wanted to output a "段" token at that location!
 
-![](https://i.imgur.com/QI1ZHLh.png)
+![image](https://github.com/user-attachments/assets/55f4fbd8-890e-4547-b365-cc98cfbc7500)
 
-Done! And, this is only possible because we have direct low-level access to Llama 3.1 70B.
+Done! The high logprob values (Seen in red), clearly indicate the locations that we should chunk! And, this is only possible because we have direct low-level access to Llama 3.1 70B.
+
+---
 
 Of course, there is a caveat. Because there are no output tokens, Llama can no longer see its own line breaks. Thus, as the text gets longer, it loses the willpower to continue to want to output "段"
 
@@ -116,14 +114,16 @@ But, we can simply normalize by this decaying curve in order to to fix this:
 
 And now, we're ready to split any type of document, without having to resort to regex or manually created rules:
 
-Markdown:
+### Python
+![](https://i.imgur.com/QI1ZHLh.png)
+
+### Markdown
 ![](https://i.imgur.com/VWd6mb9.png)
 
-HTML:
+### HTML
 ![](https://i.imgur.com/201qkLp.png)
 
-Legal Text:
-
+### Legal Text
 ![](https://i.imgur.com/6h5Oy1x.png)
 
 ## Benchmarks
