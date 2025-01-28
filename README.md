@@ -14,8 +14,8 @@ Here are our main contributions:
 - We tested 3 main chunking strategies, each with a variety of hyperparameters:
   - NaiveChunk: fixed size chunks of varying length with varying overlap ratio
   - SemanticChunk: embedding similarity based chunks with varying threshold parameter
-  - LlamaChunk Algorithm: prompt-based chunks created by Llama-70B
-- For the LlamaChunk Algorithm, we output the logprobs to chunk at a certain level of the document.
+  - zChunk Algorithm: prompt-based chunks created by Llama-70B
+- For the zChunk Algorithm, we output the logprobs to chunk at a certain level of the document.
 - Finally, we create a hyperparameter tuning pipeline for the NaiveChunk method to tune the chunk size and overlap parameters. We will release the code and allow anyone to tune these parameters for their use case and benchmarks
 
 # RAG with Llama
@@ -62,11 +62,11 @@ No Person shall be a Representative who shall not have attained to the Age of tw
 
 These chunks completely destroy the ability to understand the content of the document. The current SoTA is to write a regex to split by line or sentence, and then group sentences using embedding similarity. This is called "semantic" chunking. However, regex involves need to do custom additional work for every new document type you want to support, and when it breaks the results are poor.
 
-Here, we present LlamaChunk:
+Here, we present zChunk:
 
-## LlamaChunk algorithm
+## zChunk algorithm
 
-The LlamaChunk algorithm is simple: We pick a special token that we know is not in the corpus, e.g. "段".
+The zChunk algorithm is simple: We pick a special token that we know is not in the corpus, e.g. "段".
 - We pick the character "段" because 1. tiktoken always encodes it to exactly one token, 2. it is not in the corpus, and 3. it means "section" in Chinese.
 
 Then, we ask Llama to repeat the User's message with the "段" token sprinkled throughout.
@@ -99,7 +99,7 @@ be an Inhabitant of that State in which he shall be chosen.段
 
 And just like that, it's perfect out of the box! It correctly used the "段" character to mark the end of every section. We just need to do `chunks = ai_response.split("段")` to get our chunks. Each section is now RAG-ready.
 
-### LlamaChunk optimization
+### zChunk optimization
 
 If you've ever worked with LLM's, you know that input tokens are processed almost instantly, and output tokens take an eternity to generate. A naïve method is to simply wait for the LLM to repeat the entire python code, inserting "段" throughout.
 
@@ -141,7 +141,7 @@ Our quality benchmarks against a LegalBenchConsumerContractsQA are as follows:
 
 ![](https://i.imgur.com/g9RJIz0.png)
 
-As you can see, LlamaChunk has a higher retrieval ratio score, _and_ a higher signal ratio score, than the naïve method and the SoTA method of semantic chunking (Which uses embeddings to detect sentence split boundaries, and still requires a good regex-based sentence splitter).
+As you can see, zChunk has a higher retrieval ratio score, _and_ a higher signal ratio score, than the naïve method and the SoTA method of semantic chunking (Which uses embeddings to detect sentence split boundaries, and still requires a good regex-based sentence splitter).
 
 ## Details
 
